@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.junit.jupiter:junit-jupiter:5.7.0'
+    implementation 'io.rest-assured:rest-assured:5.0.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
+    implementation 'io.github.openfeign:feign-okhttp:11.8'
+    implementation 'io.github.openfeign:feign-jackson:11.8'
+}
+
+test {
+    useJUnitPlatform()
+}
