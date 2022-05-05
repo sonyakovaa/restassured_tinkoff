@@ -1,9 +1,12 @@
 Автоматизировать проверки методов сервиса https://petstore.swagger.io/#/
 
-POST /pet
-GET /pet/{petId}
-PUT /pet
-DELETE /pet/{petId}
+- **POST /pet**
+
+- **GET /pet/{petId}**
+
+- **PUT /pet**
+
+- **DELETE /pet/{petId}**
 
 
 Необходимо продумать минимум 4 теста (минимум по одному тесту на метод)
