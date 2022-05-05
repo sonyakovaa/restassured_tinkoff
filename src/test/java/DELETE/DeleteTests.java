@@ -26,23 +26,7 @@ public class DeleteTests {
         dog.setCategory(dogs);
         dog.setStatus("available");
 
-        Pet cat = new Pet();
-        cat.setId(2);
-        cat.setName("Biba");
-        Category cats = new Category();
-        cats.setName("Cat");
-        cat.setCategory(cats);
-        cat.setStatus("available");
-
-        Pet rat = new Pet();
-        rat.setId(3);
-        rat.setName("Boba");
-        Category rats = new Category();
-        rats.setName("Rat");
-        rat.setCategory(rats);
-        rat.setStatus("available");
-
-        return Stream.of(dog, cat, rat).map(Arguments::of);
+        return Stream.of(dog).map(Arguments::of);
     }
 
     @BeforeAll
@@ -78,10 +62,6 @@ public class DeleteTests {
                 .encoder(new JacksonEncoder()).target(PetClient.class, baseURI);
 
         petClient.createPet(pet);
-
-        get("/" + pet.getId())
-                .then()
-                .statusCode(200);
 
         delete("/" + pet.getId())
                 .then()

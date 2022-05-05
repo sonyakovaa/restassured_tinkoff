@@ -3,7 +3,9 @@ package GET;
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -25,23 +27,7 @@ public class GetTests {
         dog.setCategory(dogs);
         dog.setStatus("available");
 
-        Pet cat = new Pet();
-        cat.setId(2);
-        cat.setName("Biba");
-        Category cats = new Category();
-        cats.setName("Cat");
-        cat.setCategory(cats);
-        cat.setStatus("available");
-
-        Pet rat = new Pet();
-        rat.setId(3);
-        rat.setName("Boba");
-        Category rats = new Category();
-        rats.setName("Rat");
-        rat.setCategory(rats);
-        rat.setStatus("available");
-
-        return Stream.of(dog, cat, rat).map(Arguments::of);
+        return Stream.of(dog).map(Arguments::of);
     }
 
     @BeforeAll
@@ -49,20 +35,33 @@ public class GetTests {
         baseURI = "https://petstore.swagger.io/v2/pet";
     }
 
-    // Предварительно создаем питомца и проверяем, что он существует
-    @ParameterizedTest
-    @MethodSource("params")
-    public void getPet(Pet pet) {
+    // Создаем питомца и проверяем, что он создался, и поля созданного питомца совпадают с поданным на вход
+    @Test
+    public void getAndValidatePet() {
+        Pet cow = new Pet();
+        cow.setId(4);
+        cow.setName("Muuu");
+        Category cows = new Category();
+        cows.setName("Cows");
+        cow.setCategory(cows);
+        cow.setStatus("available");
+
         PetClient petClient = Feign.builder()
                 .decoder(new JacksonDecoder())
                 .encoder(new JacksonEncoder()).target(PetClient.class, baseURI);
 
-        petClient.createPet(pet);
+        petClient.createPet(cow);
 
-        given()
-                .get("/" + pet.getId())
+        get("/" + cow.getId())
                 .then()
                 .statusCode(200);
+
+        Pet checkPet = petClient.findById(cow.getId());
+
+        Assertions.assertEquals(cow.getId(), checkPet.getId());
+        Assertions.assertEquals(cow.getName(), checkPet.getName());
+        Assertions.assertEquals(cow.getCategory().getName(), checkPet.getCategory().getName());
+        Assertions.assertEquals(cow.getStatus(), checkPet.getStatus());
     }
 
     // Получение несуществующего (удаленного) питомца

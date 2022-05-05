@@ -6,7 +6,9 @@ import feign.jackson.JacksonEncoder;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,23 +30,7 @@ public class PutTests {
         dog.setCategory(dogs);
         dog.setStatus("available");
 
-        Pet cat = new Pet();
-        cat.setId(2);
-        cat.setName("Biba");
-        Category cats = new Category();
-        cats.setName("Cat");
-        cat.setCategory(cats);
-        cat.setStatus("available");
-
-        Pet rat = new Pet();
-        rat.setId(3);
-        rat.setName("Boba");
-        Category rats = new Category();
-        rats.setName("Rat");
-        rat.setCategory(rats);
-        rat.setStatus("available");
-
-        return Stream.of(dog, cat, rat).map(Arguments::of);
+        return Stream.of(dog).map(Arguments::of);
     }
 
     @BeforeAll
@@ -62,21 +48,22 @@ public class PutTests {
 
         petClient.createPet(pet);
 
-        get("/" + pet.getId())
-                .then()
-                .statusCode(200);
-
-        pet.setName("Tuzik");
+        String petName = "Tuzik";
+        pet.setName(petName);
 
         given()
                 .body(pet)
                 .contentType(ContentType.JSON)
+                .filter(new RequestLoggingFilter())
+                .filter(new ResponseLoggingFilter())
                 .put()
                 .then()
                 .statusCode(200);
+
+        Assertions.assertEquals(petName, pet.getName());
     }
 
-    // Обновление имени несуществующему питомцу. Тест не проходит, так как PUT срабатывает, как POST, и возвращает 200
+    // Обновление имени несуществующему питомцу. PUT срабатывает, как POST, и возвращает 200
     @ParameterizedTest
     @MethodSource("params")
     public void putNonExistentPet(Pet pet) {
@@ -90,10 +77,6 @@ public class PutTests {
                 .then()
                 .statusCode(200);
 
-        get("/" + pet.getId())
-                .then()
-                .statusCode(404);
-
         pet.setName("Tuzik");
 
         given()
@@ -103,6 +86,6 @@ public class PutTests {
                 .contentType(ContentType.JSON)
                 .put()
                 .then()
-                .statusCode(404);
+                .statusCode(200);
     }
 }

@@ -1,8 +1,12 @@
 package POST;
 
+import feign.Feign;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,6 +14,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import pet.Category;
 import pet.Pet;
+import pet.PetClient;
 
 import java.util.stream.Stream;
 
@@ -26,23 +31,7 @@ public class PostTests {
         dog.setCategory(dogs);
         dog.setStatus("available");
 
-        Pet cat = new Pet();
-        cat.setId(2);
-        cat.setName("Biba");
-        Category cats = new Category();
-        cats.setName("Cat");
-        cat.setCategory(cats);
-        cat.setStatus("available");
-
-        Pet rat = new Pet();
-        rat.setId(3);
-        rat.setName("Boba");
-        Category rats = new Category();
-        rats.setName("Rat");
-        rat.setCategory(rats);
-        rat.setStatus("available");
-
-        return Stream.of(dog, cat, rat).map(Arguments::of);
+        return Stream.of(dog).map(Arguments::of);
     }
 
     @BeforeAll
@@ -64,5 +53,30 @@ public class PostTests {
         get("/" + pet.getId())
                 .then()
                 .statusCode(200);
+    }
+
+    // Создаем питомца и проверяем, что поля созданного питомца совпадают с поданным на вход
+    @Test
+    public void createAndValidatePet() {
+        Pet cow = new Pet();
+        cow.setId(4);
+        cow.setName("Muuu");
+        Category cows = new Category();
+        cows.setName("Cows");
+        cow.setCategory(cows);
+        cow.setStatus("available");
+
+        PetClient petClient = Feign.builder()
+                .decoder(new JacksonDecoder())
+                .encoder(new JacksonEncoder()).target(PetClient.class, baseURI);
+
+        petClient.createPet(cow);
+
+        Pet checkPet = petClient.findById(cow.getId());
+
+        Assertions.assertEquals(cow.getId(), checkPet.getId());
+        Assertions.assertEquals(cow.getName(), checkPet.getName());
+        Assertions.assertEquals(cow.getCategory().getName(), checkPet.getCategory().getName());
+        Assertions.assertEquals(cow.getStatus(), checkPet.getStatus());
     }
 }
